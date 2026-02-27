@@ -38,37 +38,35 @@ col1, col2 = st.columns([2, 1])
 with col1:
     st.subheader("Der Geldfluss im Überblick")
     
-    # Mermaid Diagramm (Dynamisch)
-    mermaid_code = f"""
-    graph TD
-        HH[Private Haushalte]
-        UN[Unternehmen]
-        ST[Staat]
-        BK[Banken]
-        AU[Ausland]
+ # Graphviz Diagramm (Die stabilere Alternative)
+    dot_code = f"""
+    digraph G {{
+        rankdir=LR;
+        node [shape=box, style="filled,rounded", fontname="Arial", fontsize="12"];
+        
+        HH [label="Private Haushalte", fillcolor="#FFCC99"];
+        UN [label="Unternehmen", fillcolor="#FFCC99"];
+        ST [label="Staat", fillcolor="#99CCFF"];
+        BK [label="Banken", fillcolor="#99FF99"];
+        AU [label="Ausland", fillcolor="#FFFF99"];
 
-        HH -- "Konsum ({konsum_inland:.0f}€)" --> UN
-        UN -- "Einkommen ({einkommen:.0f}€)" --> HH
+        HH -> UN [label=" Konsum ({konsum_inland:.0f}€)", color="#333333"];
+        UN -> HH [label=" Einkommen ({einkommen:.0f}€)", color="#333333"];
         
-        HH -- "Steuern ({steuern_hh:.0f}€)" --> ST
-        ST -- "Transfers ({transfers:.0f}€)" --> HH
+        HH -> ST [label=" Steuern ({steuern_hh:.0f}€)", color="red"];
+        ST -> HH [label=" Transfers ({transfers:.0f}€)", color="blue"];
         
-        UN -- "Steuern (fix 200€)" --> ST
-        ST -- "Subventionen ({subventionen:.0f}€)" --> UN
+        UN -> ST [label=" Steuern (200€)", color="red"];
+        ST -> UN [label=" Subventionen ({subventionen:.0f}€)", color="blue"];
         
-        HH -- "Sparen ({sparen:.0f}€)" --> BK
-        BK -- "Kredite/Invest." --> UN
+        HH -> BK [label=" Sparen ({sparen:.0f}€)", color="green"];
+        BK -> UN [label=" Investitionen", color="green"];
         
-        HH -- "Importe ({importe:.0f}€)" --> AU
-        AU -- "Exporte ({exporte:.0f}€)" --> UN
-
-        style HH fill:#f96,stroke:#333
-        style UN fill:#f96,stroke:#333
-        style ST fill:#9cf,stroke:#333
-        style BK fill:#9f9,stroke:#333
-        style AU fill:#ff9,stroke:#333
+        HH -> AU [label=" Importe ({importe:.0f}€)", color="#666666"];
+        AU -> UN [label=" Exporte ({exporte:.0f}€)", color="#666666"];
+    }}
     """
-    st.mermaid(mermaid_code)
+    st.graphviz_chart(dot_code)  
 
 with col2:
     st.subheader("Sektoren-Bilanzen")
@@ -81,5 +79,6 @@ with col2:
         "Wert (€)": [konsum_inland, steuern_hh, sparen, importe]
     }
     st.table(pd.DataFrame(data))
+
 
 st.info("**Unterrichts-Tipp:** Erhöhen Sie die Sparquote. Was passiert mit dem Konsum bei den Unternehmen? Diskutieren Sie den 'Sparparadoxon'.")
